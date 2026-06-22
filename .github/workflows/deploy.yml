@@ -1,1 +1,60 @@
+name: Deploy
+
+on: 
+  push:
+    branches:
+      - main
+
+ jobs:
+   build:
+     runs-on: ubuntu-latest
+
+     steps:
+       - name: Checkout
+         uses: actions/checkout@v4
+
+       - name: Configure AWS credentials
+         uses: aws-actions/configure-aws-credentials@v4
+         with:
+           aws-access-key-id: ${{  secrets.AWS_ACCESS_KEY  }}
+           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+           aws-region: ap-south-1
+           
+       - name: Login to ECR
+         run: |
+           aws ecr get-login-password --region ap-south-1 |
+           docker login --username AWS --password-stdin 632295790019.dkr.ecr.ap-south-1.amazonaws.com/eks-devops-project
+
+       - name: Build Docker Image
+         run: docker build -t eks-devops-project .
+
+       - name: Tag Docker Image  
+            docker tag eks-devops-project:latest 632295790019.dkr.ecr.ap-south-1.amazonaws.com/eks-devops-project/eks-devops-project:latest
+
+       - name: Push to ECR
+         run: docker push 632295790019.dkr.ecr.ap-south-1.amazonaws.com/eks-devops-project/eks-devops-project:latest
+       
+       name: Deploy to EKS
+         run: |
+          aws eks update-kubeconfig --name eks-devops-project
+          kubectl apply -f deployment.yml
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+           
+           
+       - name:    
 
